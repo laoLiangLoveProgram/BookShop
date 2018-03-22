@@ -24,7 +24,7 @@
                 </property>
             </bean>
             <!--springMVC自动反序列化时用到的一个配置类-->
-            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
                 <property name="supportedMediaTypes">
                     <list>
                         <value>application/json;charset=UTF-8</value>
