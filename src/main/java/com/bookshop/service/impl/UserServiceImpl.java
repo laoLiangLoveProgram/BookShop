@@ -29,7 +29,7 @@ public class UserServiceImpl implements IUserService {
             return ServerResponse.createByErrorMessage("用户名不存在");
         }
 
-        //todo 密码登录MD5
+        //密码登录MD5
         String md5Password = MD5Util.MD5EncodeUtf8(password);
 
         // 验证用户名和密码正确
@@ -46,7 +46,7 @@ public class UserServiceImpl implements IUserService {
 
     public ServerResponse<String> register(User user){
         //校验用户名是否存在，由于是注册，如果用户名已存在，则返回
-        ServerResponse validResponse = this.checkValid(user.getUsername(), Const.USERNAME);
+        ServerResponse<String> validResponse = this.checkValid(user.getUsername(), Const.USERNAME);
         if(!validResponse.isSuccess()){
             //用户名已存在
             return validResponse;

@@ -2,6 +2,9 @@ package com.bookshop.pojo;
 
 import java.util.Date;
 
+/**
+ * 付款信息
+ */
 public class PayInfo {
     private Integer id;
 

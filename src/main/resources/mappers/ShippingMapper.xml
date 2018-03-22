@@ -31,16 +31,17 @@
     delete from shipping
     where id = #{id,jdbcType=INTEGER}
   </delete>
-    <insert id="insert" parameterType="com.bookshop.pojo.Shipping">
+    <!--这里使用了主键返回策略, 一般情况下, 是返回的结果的数量, 这里返回的是自增的主键Id-->
+    <insert id="insert" parameterType="com.bookshop.pojo.Shipping" useGeneratedKeys="true" keyProperty="id">
     insert into shipping (id, user_id, receiver_name, 
       receiver_phone, receiver_mobile, receiver_province, 
       receiver_city, receiver_district, receiver_address, 
       receiver_zip, create_time, update_time
       )
     values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{receiverName,jdbcType=VARCHAR}, 
-      #{receiverPhone,jdbcType=VARCHAR}, #{receiverMobile,jdbcType=VARCHAR}, #{receiverProvince,jdbcType=VARCHAR}, 
-      #{receiverCity,jdbcType=VARCHAR}, #{receiverDistrict,jdbcType=VARCHAR}, #{receiverAddress,jdbcType=VARCHAR}, 
-      #{receiverZip,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      #{receiverPhone,jdbcType=VARCHAR}, #{receiverMobile,jdbcType=VARCHAR}, #{receiverProvince,jdbcType=VARCHAR},
+        #{receiverCity,jdbcType=VARCHAR}, #{receiverDistrict,jdbcType=VARCHAR}, #{receiverAddress,jdbcType=VARCHAR},
+        #{receiverZip,jdbcType=VARCHAR}, now(), now()
       )
   </insert>
     <insert id="insertSelective" parameterType="com.bookshop.pojo.Shipping">
@@ -115,10 +116,10 @@
                 #{receiverZip,jdbcType=VARCHAR},
             </if>
             <if test="createTime != null">
-                #{createTime,jdbcType=TIMESTAMP},
+                now(),
             </if>
             <if test="updateTime != null">
-                #{updateTime,jdbcType=TIMESTAMP},
+                now(),
             </if>
         </trim>
     </insert>
@@ -156,7 +157,7 @@
                 create_time = #{createTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updateTime != null">
-                update_time = #{updateTime,jdbcType=TIMESTAMP},
+                update_time = now(),
             </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
@@ -173,7 +174,45 @@
       receiver_address = #{receiverAddress,jdbcType=VARCHAR},
       receiver_zip = #{receiverZip,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        update_time = now()
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+    <delete id="deleteByShippingIdUserId" parameterType="map">
+        DELETE  FROM  shipping
+        WHERE user_id = #{userId}
+        AND id = #{shippingId}
+    </delete>
+    <!-- 这里的user_id是不能更改的, 所以需要删除掉, 删除SET user_id = #{userId,jdbcType=INTEGER},-->
+    <update id="updateByShippingIdUserId" parameterType="com.bookshop.pojo.Shipping">
+        UPDATE shipping
+        SET
+          receiver_name = #{receiverName,jdbcType=VARCHAR},
+          receiver_phone = #{receiverPhone,jdbcType=VARCHAR},
+          receiver_mobile = #{receiverMobile,jdbcType=VARCHAR},
+          receiver_province = #{receiverProvince,jdbcType=VARCHAR},
+          receiver_city = #{receiverCity,jdbcType=VARCHAR},
+          receiver_district = #{receiverDistrict,jdbcType=VARCHAR},
+          receiver_address = #{receiverAddress,jdbcType=VARCHAR},
+          receiver_zip = #{receiverZip,jdbcType=VARCHAR},
+          create_time = #{createTime,jdbcType=TIMESTAMP},
+          update_time = now()
+        WHERE id = #{id,jdbcType=INTEGER}
+        AND user_id = #{userId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByShippingIdUserId" resultMap="BaseResultMap" parameterType="map">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM shipping
+        WHERE id = #{shippingId}
+        AND user_id = #{userId}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="map">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM shipping
+        WHERE user_id = #{userId}
+    </select>
 </mapper>

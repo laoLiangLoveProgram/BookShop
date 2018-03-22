@@ -20,5 +20,7 @@ public interface BookMapper {
 
     List<Book> selectList();
 
-    List<Book> selectByNameAndBookId(@Param("bookName")String bookName, @Param("bookId") Integer bookId);
+    List<Book> selectByNameAndBookId(@Param("bookName") String bookName, @Param("bookId") Integer bookId);
+
+    List<Book> selectByNameAndCategoryIds(@Param("bookName") String bookName, @Param("categoryIdList") List<Integer> categoryIdList);
 }

@@ -21,15 +21,15 @@
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from user
+        from `user`
         where id = #{id,jdbcType=INTEGER}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-    delete from user
+        delete from `user`
     where id = #{id,jdbcType=INTEGER}
   </delete>
     <insert id="insert" parameterType="com.bookshop.pojo.User">
-    insert into user (id, username, password,
+        insert into `user` (id, username, password,
       email, phone, question,
       answer, role, create_time,
       update_time)
@@ -39,7 +39,7 @@
       now())
   </insert>
     <insert id="insertSelective" parameterType="com.bookshop.pojo.User">
-        insert into user
+        insert into `user`
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -106,7 +106,7 @@
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective" parameterType="com.bookshop.pojo.User">
-        update user
+        update `user`
         <set>
             <if test="username != null">
                 username = #{username,jdbcType=VARCHAR},
@@ -139,7 +139,7 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
     <update id="updateByPrimaryKey" parameterType="com.bookshop.pojo.User">
-    update user
+        update `user`
     set username = #{username,jdbcType=VARCHAR},
       password = #{password,jdbcType=VARCHAR},
       email = #{email,jdbcType=VARCHAR},
@@ -154,7 +154,7 @@
 
     <select id="checkUsername" parameterType="string" resultType="int">
     SELECT count(1)
-    FROM user
+        FROM `user`
     WHERE username = #{username}
   </select>
 
@@ -162,47 +162,47 @@
         <!--不要使用select * 查询，这样会出现一些不需要的字段-->
         SELECT
         <include refid="Base_Column_List"/>
-        FROM user
+        FROM `user`
         WHERE username = #{username}
         AND password = #{password}
     </select>
 
     <select id="checkEmail" parameterType="string" resultType="int">
         SELECT count(1)
-        FROM user
+        FROM `user`
         WHERE email = #{email}
     </select>
 
     <select id="selectQuestionByUsername" parameterType="string" resultType="string">
         SELECT question
-        FROM user
+        FROM `user`
         WHERE username = #{username}
     </select>
 
     <select id="checkAnswer" parameterType="map" resultType="int">
         SELECT count(1)
-        FROM user
+        FROM `user`
         WHERE username = #{username}
         AND question = #{question}
         AND answer = #{answer}
     </select>
 
     <update id="updatePasswordByUsername" parameterType="map">
-        UPDATE user
+        UPDATE `user`
         SET password = #{passwordNew}, update_time = now()
         WHERE username = #{username}
     </update>
 
     <select id="checkPassword" parameterType="map" resultType="int">
         SELECT count(1)
-        FROM user
+        FROM `user`
         WHERE id = #{userId}
         AND password = #{password}
     </select>
 
     <select id="checkEmailByUserId" parameterType="map" resultType="int">
         SELECT count(1)
-        FROM user
+        FROM `user`
         WHERE email = #{email}
         AND id != #{userId}
     </select>

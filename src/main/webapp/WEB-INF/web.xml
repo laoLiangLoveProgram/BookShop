@@ -54,6 +54,11 @@
   <servlet-mapping>
     <servlet-name>dispatcher</servlet-name>
     <url-pattern>*.do</url-pattern>
+    <!-- 三种映射:
+            1. *.do *.action *.aspx   只会拦截特定后缀的请求
+            2. /   会放行jsp文件请求, 拦截其他种类的请求, 如: css  js等
+            3. /*  会拦截所有请求   jsp, css, js, ....
+    -->
   </servlet-mapping>
 
 </web-app>

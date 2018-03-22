@@ -12,7 +12,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title></title>
     <link type="text/css" rel="stylesheet" href="css/style.css"/>
-    <script type="application/javascript" src="js/jquery.js"></script>
+    <script type="application/javascript" src="js/easyui/jquery.js"></script>
     <script type="application/javascript" src="js/login.js"></script>
 </head>
 <body>

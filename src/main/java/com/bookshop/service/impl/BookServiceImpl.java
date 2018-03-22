@@ -1,5 +1,6 @@
 package com.bookshop.service.impl;
 
+import com.bookshop.common.Const;
 import com.bookshop.common.ResponseCode;
 import com.bookshop.common.ServerResponse;
 import com.bookshop.dao.BookMapper;
@@ -7,6 +8,7 @@ import com.bookshop.dao.CategoryMapper;
 import com.bookshop.pojo.Book;
 import com.bookshop.pojo.Category;
 import com.bookshop.service.IBookService;
+import com.bookshop.service.ICategoryService;
 import com.bookshop.util.DateTimeUtil;
 import com.bookshop.util.PropertiesUtil;
 import com.bookshop.vo.BookDetailVo;
@@ -17,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -32,6 +33,9 @@ public class BookServiceImpl implements IBookService {
 
     @Autowired
     private CategoryMapper categoryMapper;
+
+    @Autowired
+    private ICategoryService iCategoryService;
 
     //保存或更新产品
     public ServerResponse saveOrUpdateBook(Book book) {
@@ -71,7 +75,7 @@ public class BookServiceImpl implements IBookService {
         }
         Book book = new Book();
         book.setId(bookId);
-        book.setStatus(status);
+        book.setStatus(status); //1-在售, 2-下架, 3-删除(非真删除,只是将状态置为3)
         int rowCount = bookMapper.updateByPrimaryKeySelective(book);
         if (rowCount > 0) {
             return ServerResponse.createBySuccessMessage("修改产品状态成功");
@@ -168,7 +172,7 @@ public class BookServiceImpl implements IBookService {
         return ServerResponse.createBySuccess(pageResult);
     }
 
-
+    //组装BookListVo类
     private BookListVo assembleBookListVo(Book book) {
         BookListVo bookListVo = new BookListVo();
         bookListVo.setId(book.getId());
@@ -178,9 +182,77 @@ public class BookServiceImpl implements IBookService {
         bookListVo.setSubtitle(book.getSubtitle());
         bookListVo.setMainImage(book.getMainImage());
         bookListVo.setPrice(book.getPrice());
+        bookListVo.setStock(book.getStock());
         bookListVo.setStatus(book.getStatus());
         bookListVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix", "http://image.bookshop.com/"));
         return bookListVo;
     }
 
+    public ServerResponse<BookDetailVo> getBookDetail(Integer bookId) {
+        if (bookId == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        Book book = bookMapper.selectByPrimaryKey(bookId);
+        if (book == null) {
+            return ServerResponse.createByErrorMessage("产品已下架或者删除");
+        }
+        //status: 1-在售-ON_SALE, 2-下架, 3-删除,
+        if (book.getStatus() != Const.BookStatusEnum.ON_SALE.getCode()) {
+            return ServerResponse.createByErrorMessage("产品已下架或者删除");
+        }
+        //VO对象--value Object
+        //pojo --> bo(business object) --> vo(view object)
+        BookDetailVo bookDetailVo = assembleBookDetailVo(book);
+
+        return ServerResponse.createBySuccess(bookDetailVo);
+    }
+
+    public ServerResponse<PageInfo> getBookByKeywordCategory(String keyword, Integer categoryId, int pageNum, int pageSize, String orderBy) {
+        if (categoryId == null && StringUtils.isBlank(keyword)) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+
+        List<Integer> categoryIdList = Lists.newArrayList();
+
+        if (categoryId != null) {
+            Category category = categoryMapper.selectByPrimaryKey(categoryId);
+            //categoryId != null && StringUtils.isBlank(keyword)
+            if (category == null && StringUtils.isBlank(keyword)) {
+                //没有该分类, 并且没有关键字, 此时返回一个空的结果集, 不报错
+                PageHelper.startPage(pageNum, pageSize);
+                List<BookListVo> bookListVoList = Lists.newArrayList();
+                PageInfo pageInfo = new PageInfo(bookListVoList);
+                return ServerResponse.createBySuccess(pageInfo);
+            }
+            //category !=null && keyword?
+            categoryIdList = iCategoryService.selectCategoryAndChildrenById(categoryId).getData();
+        }
+
+        //categoryId != null && StringUtils.isNotBlank(keyword)
+        if (StringUtils.isNotBlank(keyword)) {
+            keyword = new StringBuilder().append("%").append(keyword).append("%").toString();
+        }
+
+        PageHelper.startPage(pageNum, pageSize);
+        //排序处理
+        if (StringUtils.isNotBlank(orderBy)) {
+            //动态排序:
+            if (Const.BookListOrderBy.BOOK_ASC_DESC.contains(orderBy)) {
+                String[] orderByArray = orderBy.split("_");
+                //PageHelper的orderBy方法 参数格式"price desc";
+                PageHelper.orderBy(orderByArray[0] + " " + orderByArray[1]);
+            }
+        }
+        //由于是SELECT ...  IN 的方式, 所以需要避免categoryIdList的长度为0的情况
+        List<Book> bookList = bookMapper.selectByNameAndCategoryIds(StringUtils.isBlank(keyword) ? null : keyword, categoryIdList.size() == 0 ? null : categoryIdList);
+        List<BookListVo> bookListVoList = Lists.newArrayList();
+        for (Book book : bookList) {
+            BookListVo bookListVo = assembleBookListVo(book);
+            bookListVoList.add(bookListVo);
+        }
+        PageInfo pageInfo = new PageInfo(bookList);
+        pageInfo.setList(bookListVoList);
+
+        return ServerResponse.createBySuccess(pageInfo);
+    }
 }
