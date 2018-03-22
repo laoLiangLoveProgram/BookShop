@@ -19,4 +19,8 @@ public interface IBookService {
     ServerResponse<PageInfo> getBookList(int pageNum, int pageSize);
 
     ServerResponse<PageInfo> searchBook(String bookName, Integer bookId, int pageNum, int pageSize);
+
+    ServerResponse<BookDetailVo> getBookDetail(Integer bookId);
+
+    ServerResponse<PageInfo> getBookByKeywordCategory(String keyword, Integer categoryId, int pageNum, int pageSize, String orderBy);
 }

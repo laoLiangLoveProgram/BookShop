@@ -56,7 +56,7 @@ public interface UserMapper {
 
     int updatePasswordByUsername(@Param("username") String username, @Param("passwordNew") String passwordNew);
 
-    int checkPassword(@Param("password")String password, @Param("userId")Integer userId);
+    int checkPassword(@Param("password") String password, @Param("userId") Integer userId);
 
     /**
      * 校验除了userId的用户以外的其他用户是否有相同的email存在

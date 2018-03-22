@@ -29,9 +29,9 @@
     insert into cart (id, user_id, book_id, 
       quantity, checked, create_time, 
       update_time)
-    values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{bookId,jdbcType=INTEGER}, 
-      #{quantity,jdbcType=INTEGER}, #{checked,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+        values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{bookId,jdbcType=INTEGER},
+        #{quantity,jdbcType=INTEGER}, #{checked,jdbcType=INTEGER}, now(),
+        now())
   </insert>
     <insert id="insertSelective" parameterType="com.bookshop.pojo.Cart">
         insert into cart
@@ -75,10 +75,10 @@
                 #{checked,jdbcType=INTEGER},
             </if>
             <if test="createTime != null">
-                #{createTime,jdbcType=TIMESTAMP},
+                now(),
             </if>
             <if test="updateTime != null">
-                #{updateTime,jdbcType=TIMESTAMP},
+                now(),
             </if>
         </trim>
     </insert>
@@ -101,7 +101,7 @@
                 create_time = #{createTime,jdbcType=TIMESTAMP},
             </if>
             <if test="updateTime != null">
-                update_time = #{updateTime,jdbcType=TIMESTAMP},
+                update_time = now(),
             </if>
         </set>
         where id = #{id,jdbcType=INTEGER}
@@ -113,7 +113,58 @@
       quantity = #{quantity,jdbcType=INTEGER},
       checked = #{checked,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        update_time = now()
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+    <select id="selectCartByUserIdBookId" resultMap="BaseResultMap" parameterType="map">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM cart
+        WHERE user_id = #{userId}
+        AND book_id = #{bookId}
+    </select>
+
+    <select id="selectCartByUserId" resultMap="BaseResultMap" parameterType="int">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM cart
+        WHERE user_id = #{userId}
+    </select>
+
+    <!--如果为勾选的项目数量不为0, 则代表不是全选-->
+    <select id="selectCartBookCheckedStatusByUserId" resultType="int" parameterType="int">
+        SELECT count(1)
+        FROM cart
+        WHERE checked = 0
+        AND user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserIdBookIds" parameterType="map">
+        DELETE FROM cart
+        WHERE user_id = #{userId}
+        <if test="bookIdList != null">
+            AND book_id IN
+            <foreach collection="bookIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </delete>
+
+    <update id="checkedOrUncheckedBook" parameterType="map">
+        UPDATE cart
+        SET checked = #{checked},
+        update_time = now()
+        WHERE user_id = #{userId}
+        <if test="bookId != null">
+            AND book_id = #{bookId}
+        </if>
+    </update>
+
+    <!--为了防止userId不存在的情况出现null的情况,  使用了内置函数IFNULL -->
+    <select id="selectCartBookCount" parameterType="int" resultType="int">
+        SELECT IFNULL(sum(quantity), 0) as count
+        FROM cart
+        WHERE user_id = #{userId}
+    </select>
 </mapper>

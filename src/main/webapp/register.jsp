@@ -32,7 +32,7 @@
             <li class="unpass">2.注册成功</li>
         </ul>
     </div>
-    <form method="post" action="register_success.jsp">
+    <form method="post" action="jsp/register_success.jsp">
         <dl>
             <dt>用 户 名：</dt>
             <dd><input class="input-text" type="text" name="userName" /><span>当前用户已存在！</span></dd>
