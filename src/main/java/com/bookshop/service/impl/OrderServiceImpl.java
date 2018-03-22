@@ -87,7 +87,7 @@ public class OrderServiceImpl implements IOrderService {
     private ShippingMapper shippingMapper;
 
     /**
-     * 发货
+     * 后台, 发货
      */
     public ServerResponse<String> manageSendGoods(Long orderNo) {
         Order order = orderMapper.selectByOrderNo(orderNo);
