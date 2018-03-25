@@ -2,11 +2,11 @@ package com.bookshop.service.impl;
 
 import com.bookshop.common.Const;
 import com.bookshop.common.ServerResponse;
-import com.bookshop.common.TokenCache;
 import com.bookshop.dao.UserMapper;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IUserService;
 import com.bookshop.util.MD5Util;
+import com.bookshop.util.RedisPoolUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -134,7 +134,8 @@ public class UserServiceImpl implements IUserService {
         if(resultCount > 0){
             //说明问题及答案是该用户的，且是正确的
             String forgetToken = UUID.randomUUID().toString();
-            TokenCache.setKey(TokenCache.TOKEN_PREFIX+username, forgetToken);
+            //使用Redis缓存来代替Guava Cache
+            RedisPoolUtil.setEx(Const.TOKEN_PREFIX+username, forgetToken, 60*60*12);
 
             return ServerResponse.createBySuccess(forgetToken);
         }
@@ -151,7 +152,9 @@ public class UserServiceImpl implements IUserService {
             return ServerResponse.createByErrorMessage("用户不存在");
         }
 
-        String token = TokenCache.getKey(TokenCache.TOKEN_PREFIX+username);
+        //使用了Redis缓存来代替Guava Cache
+        String token = RedisPoolUtil.get(Const.TOKEN_PREFIX+username);
+
         if(StringUtils.isBlank(token)){
             return ServerResponse.createByErrorMessage("token无效或者过期");
         }
