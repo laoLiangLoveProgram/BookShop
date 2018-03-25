@@ -218,6 +218,7 @@ public class UserServiceImpl implements IUserService {
         }
         //需要把密码置空，防止安全问题
         user.setPassword(StringUtils.EMPTY);
+        user.setAnswer(StringUtils.EMPTY);
         return ServerResponse.createBySuccess(user);
     }
 

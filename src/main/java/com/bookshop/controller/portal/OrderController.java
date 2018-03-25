@@ -6,6 +6,7 @@ import com.alipay.demo.trade.config.Configs;
 import com.bookshop.common.Const;
 import com.bookshop.common.ResponseCode;
 import com.bookshop.common.ServerResponse;
+import com.bookshop.controller.common.UserSessionUtil;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IOrderService;
 import com.google.common.collect.Maps;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -39,104 +39,111 @@ public class OrderController {
     @Autowired
     private IOrderService iOrderService;
 
+    /**
+     * 创建订单
+     *
+     */
     @RequestMapping("create.do")
     @ResponseBody
-    public ServerResponse create(HttpSession session, Integer shippingId) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse create(HttpServletRequest request, Integer shippingId) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         return iOrderService.createOrder(user.getId(), shippingId);
     }
 
 
+    /**
+     * 根据订单号取消订单
+     *
+     */
     @RequestMapping("cancel.do")
     @ResponseBody
-    public ServerResponse cancel(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse cancel(HttpServletRequest request, Long orderNo) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
+
         return iOrderService.cancel(user.getId(), orderNo);
     }
 
     /**
      * 获取购物车中已经选中的商品详情
      *
-     * @param session
-     * @return
      */
     @RequestMapping("get_order_cart_book.do")
     @ResponseBody
-    public ServerResponse getOrderCartBook(HttpSession session) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse getOrderCartBook(HttpServletRequest request) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         return iOrderService.getOrderCartBook(user.getId());
     }
 
     /**
      * 获取订单详情
      *
-     * @param session
-     * @param orderNo
-     * @return
      */
     @RequestMapping("detail.do")
     @ResponseBody
-    public ServerResponse detail(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse detail(HttpServletRequest request, Long orderNo) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
+
         return iOrderService.getOrderDetail(user.getId(), orderNo);
     }
 
     /**
      * 查看所有的订单
      *
-     * @param session
-     * @return
      */
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse list(HttpSession session, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse list(HttpServletRequest request, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
+
         return iOrderService.getOrderVoList(user.getId(), pageNum, pageSize);
     }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
     /**
      * 支付订单号, 通过request获得servlet上下文, 获取upload文件夹, 把自动生成的二维码传到ftp服务器上, 然后返回给前端二维码的图片地址
      *
-     * @param session
-     * @param orderNo
-     * @param request
-     * @return
      */
     @RequestMapping("pay.do")
     @ResponseBody
-    public ServerResponse pay(HttpSession session, Long orderNo, HttpServletRequest request) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse pay(Long orderNo, HttpServletRequest request) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         String path = request.getSession().getServletContext().getRealPath("upload");
 
         return iOrderService.pay(orderNo, user.getId(), path);
@@ -145,6 +152,7 @@ public class OrderController {
 
     /**
      * 支付宝的回调函数
+     *
      */
     @RequestMapping("alipay_callback.do")
     @ResponseBody
@@ -201,13 +209,15 @@ public class OrderController {
      */
     @RequestMapping("query_order_pay_status.do")
     @ResponseBody
-    public ServerResponse<Boolean> queryOrderPayStatus(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+    public ServerResponse<Boolean> queryOrderPayStatus(HttpServletRequest request, Long orderNo) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
 
-        ServerResponse serverResponse = iOrderService.queryOrderPayStatus(user.getId(), orderNo);
+        serverResponse = iOrderService.queryOrderPayStatus(user.getId(), orderNo);
         if (serverResponse.isSuccess()) {
             return ServerResponse.createBySuccess(true);
         }

@@ -3,6 +3,7 @@ package com.bookshop.controller.backend;
 import com.bookshop.common.Const;
 import com.bookshop.common.ResponseCode;
 import com.bookshop.common.ServerResponse;
+import com.bookshop.controller.common.UserSessionUtil;
 import com.bookshop.pojo.User;
 import com.bookshop.service.ICategoryService;
 import com.bookshop.service.IUserService;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by Administrator on 2017/5/16.
@@ -30,11 +31,13 @@ public class CategoryManageController {
 
     @RequestMapping(value = "add_category.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse addCategory(HttpSession session, String categoryName, @RequestParam(value = "parentId", defaultValue = "0") Integer parentId) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录");
+    public ServerResponse addCategory(HttpServletRequest request, String categoryName, @RequestParam(value = "parentId", defaultValue = "0") Integer parentId) {
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         //校验是否是管理员
         ServerResponse response = iUserService.checkAdminRole(user);
         if (response.isSuccess()) {
@@ -48,19 +51,17 @@ public class CategoryManageController {
     /**
      * 更新category的name
      *
-     * @param session
-     * @param categoryId
-     * @param categoryName
-     * @return
      */
     @RequestMapping(value = "set_category_name.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse setCategoryName(HttpSession session, Integer categoryId, String categoryName) {
+    public ServerResponse setCategoryName(HttpServletRequest request, Integer categoryId, String categoryName) {
         //判断是否登录
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录");
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         //校验是否是管理员
         ServerResponse response = iUserService.checkAdminRole(user);
         if (response.isSuccess()) {
@@ -75,18 +76,17 @@ public class CategoryManageController {
     /**
      * 根据categoryId获取下边平级的category信息，不递归
      *
-     * @param session
-     * @param categoryId
-     * @return
      */
     @RequestMapping(value = "get_category.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse getChildrenParallelCategory(HttpSession session, @RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId) {
+    public ServerResponse getChildrenParallelCategory(HttpServletRequest request, @RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId) {
         //判断是否登录
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录");
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         //校验是否是管理员
         ServerResponse response = iUserService.checkAdminRole(user);
         if (response.isSuccess()) {
@@ -100,18 +100,18 @@ public class CategoryManageController {
 
     /**
      * 获取当前category的id和递归子节点的id
-     * @param session
-     * @param categoryId
-     * @return
+     *
      */
     @RequestMapping(value = "get_deep_category.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse getCategoryAndDeepChildrenCategory(HttpSession session, @RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId) {
+    public ServerResponse getCategoryAndDeepChildrenCategory(HttpServletRequest request, @RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId) {
         //判断是否登录
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录");
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
+
         //校验是否是管理员
         ServerResponse response = iUserService.checkAdminRole(user);
         if (response.isSuccess()) {

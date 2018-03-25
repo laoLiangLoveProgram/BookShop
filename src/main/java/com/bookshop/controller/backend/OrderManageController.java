@@ -5,6 +5,7 @@ package com.bookshop.controller.backend;/**
 import com.bookshop.common.Const;
 import com.bookshop.common.ResponseCode;
 import com.bookshop.common.ServerResponse;
+import com.bookshop.controller.common.UserSessionUtil;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IOrderService;
 import com.bookshop.service.IUserService;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @program: book_shop
@@ -38,18 +39,16 @@ public class OrderManageController {
     /**
      * 后台管理的订单list
      *
-     * @param session
-     * @param pageNum
-     * @param pageSize
-     * @return
      */
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse<PageInfo> orderList(HttpSession session, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
+    public ServerResponse<PageInfo> orderList(HttpServletRequest request, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
 
         if (iUserService.checkAdminRole(user).isSuccess()) {
             //业务逻辑
@@ -61,14 +60,17 @@ public class OrderManageController {
 
     /**
      * 订单详情
+     *
      */
     @RequestMapping("detail.do")
     @ResponseBody
-    public ServerResponse<OrderVo> orderDetail(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
+    public ServerResponse<OrderVo> orderDetail(HttpServletRequest request, Long orderNo) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
 
         if (iUserService.checkAdminRole(user).isSuccess()) {
             //业务逻辑
@@ -80,14 +82,17 @@ public class OrderManageController {
 
     /**
      * 按订单号搜索
+     *
      */
     @RequestMapping("search.do")
     @ResponseBody
-    public ServerResponse<PageInfo> orderSearch(HttpSession session, Long orderNo, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
+    public ServerResponse<PageInfo> orderSearch(HttpServletRequest request, Long orderNo, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
 
         if (iUserService.checkAdminRole(user).isSuccess()) {
             //业务逻辑
@@ -99,14 +104,17 @@ public class OrderManageController {
 
     /**
      * 发货
+     * 
      */
     @RequestMapping("send_goods.do")
     @ResponseBody
-    public ServerResponse<String> orderSendGoods(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
+    public ServerResponse<String> orderSendGoods(HttpServletRequest request, Long orderNo) {
+        //判断是否登录
+        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
+        if (!serverResponse.isSuccess()){
+            return serverResponse;
         }
+        User user = (User) serverResponse.getData();
 
         if (iUserService.checkAdminRole(user).isSuccess()) {
             //业务逻辑

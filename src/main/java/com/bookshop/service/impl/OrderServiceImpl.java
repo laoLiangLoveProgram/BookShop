@@ -245,6 +245,9 @@ public class OrderServiceImpl implements IOrderService {
         if (order.getStatus() != Const.OrderStatusEnum.NO_PAY.getCode()) {
             return ServerResponse.createByErrorMessage("已付款, 无法取消订单");
         }
+        //需要将订单中的商品的库存加回去, 防止库存错误
+        List<OrderItem> orderItemList = orderItemMapper.selectByOrderNoAndUserId(orderNo, userId);
+        this.increaseBookStock(orderItemList);
 
         Order updateOrder = new Order();
         updateOrder.setId(order.getId());
@@ -255,6 +258,14 @@ public class OrderServiceImpl implements IOrderService {
             return ServerResponse.createBySuccess();
         }
         return ServerResponse.createByError();
+    }
+
+    private void increaseBookStock(List<OrderItem> orderItemList) {
+        for (OrderItem orderItem : orderItemList) {
+            Book book = bookMapper.selectByPrimaryKey(orderItem.getBookId());
+            book.setStock(book.getStock() + orderItem.getQuantity());
+            bookMapper.updateByPrimaryKeySelective(book);
+        }
     }
 
 
@@ -460,7 +471,7 @@ public class OrderServiceImpl implements IOrderService {
     public ServerResponse pay(Long orderNo, Integer userId, String path) {
         Map<String, String> resultMap = Maps.newHashMap();
         //获取订单之前先重置订单的总价
-        Order order = resetTotalPrice(orderNo);
+        Order order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             return ServerResponse.createByErrorMessage("用户没有该订单");
         }
@@ -587,7 +598,7 @@ public class OrderServiceImpl implements IOrderService {
             return false;
         }
         Long orderNo = Long.valueOf(params.get("out_trade_no"));
-        Order order = resetTotalPrice(orderNo);
+        Order order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             return false;
         }
@@ -662,8 +673,8 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     /**
-     * 根据单品的实际价格重置订单中的总价, 包括orderItem的总价和order的总价
-     *
+     * 根据订单详细条目的单品的实际价格重置订单中的总价, 包括orderItem的总价和order的总价
+     * 这一部不是必须的, 一般在创建订单的时候已经计算好了, 如果为了防止总价不对, 可以使用该函数
      * @param orderNo
      */
     private Order resetTotalPrice(Long orderNo) {
