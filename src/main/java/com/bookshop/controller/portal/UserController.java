@@ -5,12 +5,17 @@ import com.bookshop.common.ResponseCode;
 import com.bookshop.common.ServerResponse;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IUserService;
+import com.bookshop.util.CookieUtil;
+import com.bookshop.util.JsonUtil;
+import com.bookshop.util.RedisPoolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -32,11 +37,16 @@ public class UserController {
      */
     @RequestMapping(value = "login.do", method = RequestMethod.POST)
     @ResponseBody
-    public ServerResponse<User> login(String username, String password, HttpSession session){
+    public ServerResponse<User> login(String username, String password, HttpSession session, HttpServletResponse httpServletResponse) {
         //service-->mybatis-->dao
         ServerResponse<User> response = iUserService.login(username, password);
         if(response.isSuccess()){
-            session.setAttribute(Const.CURRENT_USER, response.getData());
+//            session.setAttribute(Const.CURRENT_USER, response.getData());
+
+            CookieUtil.writeLoginToken(httpServletResponse, session.getId());
+
+            //setEx(key, value, exTime), 设置带有剩余时间的session
+            RedisPoolUtil.setEx(session.getId(), JsonUtil.obj2String(response.getData()), Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
         }
         return response;
     }
@@ -49,8 +59,16 @@ public class UserController {
     @RequestMapping(value = "logout.do", method = RequestMethod.GET)
     //ResponseBody注解：在返回的时候，自动通过springMVC的jackson插件将返回值序列化成Json
     @ResponseBody
-    public ServerResponse<String> logout(HttpSession session){
-        session.removeAttribute(Const.CURRENT_USER);
+    public ServerResponse<String> logout(HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        String sessionId = CookieUtil.readLoginToken(request);
+
+        //删除cookie
+        CookieUtil.deleteLoginToken(request, response);
+
+        //删除redis中的session记录
+        RedisPoolUtil.del(sessionId);
+
+//        session.removeAttribute(Const.CURRENT_USER);
         return ServerResponse.createBySuccess();
     }
 
@@ -82,13 +100,18 @@ public class UserController {
 
     /**
      * 获取登录用户的信息
-     * @param session
-     * @return
      */
     @RequestMapping(value = "get_user_info.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse<User> getUserInfo(HttpSession session){
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
+    public ServerResponse<User> getUserInfo(HttpServletRequest request) {
+//        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        String sessionId = CookieUtil.readLoginToken(request);
+        if (sessionId == null) {
+            return ServerResponse.createByErrorMessage("用户未登录，无法获取当前用户的信息");
+        }
+        String userJsonStr = RedisPoolUtil.get(sessionId);
+        User user = JsonUtil.string2Obj(userJsonStr, User.class);
+
         if(user != null){
             return ServerResponse.createBySuccess(user);
         }

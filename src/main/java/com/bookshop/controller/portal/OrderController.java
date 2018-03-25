@@ -9,8 +9,7 @@ import com.bookshop.common.ServerResponse;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IOrderService;
 import com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,9 +31,10 @@ import java.util.Map;
  **/
 @Controller
 @RequestMapping("/order/")
+@Slf4j
 public class OrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+//    private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
     private IOrderService iOrderService;
@@ -165,7 +165,7 @@ public class OrderController {
             }
             params.put(name, valueStr);
         }
-        logger.info("支付宝回调, 签名sign:{}, trade_status:{}, 参数:{}", params.get("sign"), params.get("trade_status"), params.toString());
+        log.info("支付宝回调, 签名sign:{}, trade_status:{}, 参数:{}", params.get("sign"), params.get("trade_status"), params.toString());
         //验证签名, 非常重要, 验证回调的正确性, 是不是支付宝发的, 并且还要避免重复通知
         //必须先移除sign和sign_type两个key, 由于sign交给了Alipay的内置的rsaCheckV2()方法移除, 所以我们只需要自己移除sign_type
         params.remove("sign_type");
@@ -177,14 +177,14 @@ public class OrderController {
                 return ServerResponse.createByErrorMessage("非法请求, 验证不通过, 如果重复多次, 将向网警举报");
             }
         } catch (AlipayApiException e) {
-            logger.error("验证过程有异常", e);
+            log.error("验证过程有异常", e);
         }
 
 
         // 验证通知数据中的out_trade_no是否为商户系统中创建的订单号, total_amount, seller_id, seller_email(有时, 一个商户可能有多个seller_id/seller_email),只要有一个验证不通过, 则表明本次通知是异常通知, 务必忽略
         Boolean verifyAliCallback = iOrderService.verifyAliCallback(params);
         if (!verifyAliCallback) {
-            logger.info("支付宝回调通知数据不正确");
+            log.info("支付宝回调通知数据不正确");
             return "";
         }
 

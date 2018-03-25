@@ -131,6 +131,10 @@ public final class Const {
         }
     }
 
+    public interface RedisCacheExtime {
+        int REDIS_SESSION_EXTIME = 60 * 30;
+    }
+
     public interface BookListOrderBy {
         //Set的contain方法的时间复杂度是O(1), List的contain方法的时间复杂度是O(n)
         Set<String> BOOK_ASC_DESC = Sets.newHashSet("price_desc", "price_asc");

@@ -1,8 +1,7 @@
 package com.bookshop.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,9 +10,10 @@ import java.util.Properties;
 /**
  * Created by geely
  */
+@Slf4j
 public class PropertiesUtil {
 
-    private static Logger logger = LoggerFactory.getLogger(PropertiesUtil.class);
+//    private static Logger log = LoggerFactory.getLogger(PropertiesUtil.class);
 
     private static Properties props;
 
@@ -23,7 +23,7 @@ public class PropertiesUtil {
         try {
             props.load(new InputStreamReader(PropertiesUtil.class.getClassLoader().getResourceAsStream(fileName),"UTF-8"));
         } catch (IOException e) {
-            logger.error("bookshop.properties配置文件读取异常",e);
+            log.error("bookshop.properties配置文件读取异常", e);
         }
     }
 
@@ -42,6 +42,40 @@ public class PropertiesUtil {
             value = defaultValue;
         }
         return value.trim();
+    }
+
+    public static Boolean getBooleanProperty(String key) {
+        String value = props.getProperty(key.trim());
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return Boolean.parseBoolean(value.trim());
+    }
+
+    public static Boolean getBooleanProperty(String key, Boolean defaultValue) {
+
+        String value = props.getProperty(key.trim());
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(value.trim());
+    }
+
+    public static Integer getIntegerProperty(String key) {
+        String value = props.getProperty(key.trim());
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return Integer.parseInt(value.trim());
+    }
+
+    public static Integer getIntegerProperty(String key, Integer defaultValue) {
+
+        String value = props.getProperty(key.trim());
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return Integer.parseInt(value.trim());
     }
 
 
