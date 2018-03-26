@@ -13,6 +13,9 @@ public final class Const {
     public static final String EMAIL = "email";
     public static final String USERNAME = "username";
 
+    public static final String TOKEN_PREFIX = "token_";
+
+
     private Const() {
     }
 
@@ -129,6 +132,10 @@ public final class Const {
         public String getValue() {
             return value;
         }
+    }
+
+    public interface RedisCacheExtime {
+        int REDIS_SESSION_EXTIME = 60 * 30;
     }
 
     public interface BookListOrderBy {

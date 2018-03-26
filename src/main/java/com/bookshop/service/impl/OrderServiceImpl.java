@@ -29,10 +29,9 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,9 +47,10 @@ import java.util.*;
  * @create: 2018-03-21 18:44
  **/
 @Service("iOrderService")
+@Slf4j
 public class OrderServiceImpl implements IOrderService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+//    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     private static AlipayTradeService tradeService;
 
@@ -245,6 +245,9 @@ public class OrderServiceImpl implements IOrderService {
         if (order.getStatus() != Const.OrderStatusEnum.NO_PAY.getCode()) {
             return ServerResponse.createByErrorMessage("已付款, 无法取消订单");
         }
+        //需要将订单中的商品的库存加回去, 防止库存错误
+        List<OrderItem> orderItemList = orderItemMapper.selectByOrderNoAndUserId(orderNo, userId);
+        this.increaseBookStock(orderItemList);
 
         Order updateOrder = new Order();
         updateOrder.setId(order.getId());
@@ -255,6 +258,14 @@ public class OrderServiceImpl implements IOrderService {
             return ServerResponse.createBySuccess();
         }
         return ServerResponse.createByError();
+    }
+
+    private void increaseBookStock(List<OrderItem> orderItemList) {
+        for (OrderItem orderItem : orderItemList) {
+            Book book = bookMapper.selectByPrimaryKey(orderItem.getBookId());
+            book.setStock(book.getStock() + orderItem.getQuantity());
+            bookMapper.updateByPrimaryKeySelective(book);
+        }
     }
 
 
@@ -460,7 +471,7 @@ public class OrderServiceImpl implements IOrderService {
     public ServerResponse pay(Long orderNo, Integer userId, String path) {
         Map<String, String> resultMap = Maps.newHashMap();
         //获取订单之前先重置订单的总价
-        Order order = resetTotalPrice(orderNo);
+        Order order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             return ServerResponse.createByErrorMessage("用户没有该订单");
         }
@@ -530,7 +541,7 @@ public class OrderServiceImpl implements IOrderService {
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);
         switch (result.getTradeStatus()) {
             case SUCCESS:
-                logger.info("支付宝预下单成功: )");
+                log.info("支付宝预下单成功: )");
 
                 AlipayTradePrecreateResponse response = result.getResponse();
                 dumpResponse(response);
@@ -553,24 +564,24 @@ public class OrderServiceImpl implements IOrderService {
                 try {
                     FTPUtil.uploadFile(Lists.newArrayList(targetFile));
                 } catch (IOException e) {
-                    logger.error("上传二维码到FTP服务器异常", e);
+                    log.error("上传二维码到FTP服务器异常", e);
                     return ServerResponse.createByErrorMessage("二维码上传异常");
                 }
-                logger.info("qrPath:" + qrPath);
+                log.info("qrPath:" + qrPath);
                 String qrUrl = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFile.getName();
                 resultMap.put("qrUrl", qrUrl);
                 return ServerResponse.createBySuccess(resultMap);
 
             case FAILED:
-                logger.error("支付宝预下单失败!!!");
+                log.error("支付宝预下单失败!!!");
                 return ServerResponse.createByErrorMessage("支付宝预下单失败!!!");
 
             case UNKNOWN:
-                logger.error("系统异常，预下单状态未知!!!");
+                log.error("系统异常，预下单状态未知!!!");
                 return ServerResponse.createByErrorMessage("系统异常，预下单状态未知!!!");
 
             default:
-                logger.error("不支持的交易状态，交易返回异常!!!");
+                log.error("不支持的交易状态，交易返回异常!!!");
                 return ServerResponse.createByErrorMessage("不支持的交易状态，交易返回异常!!!");
         }
     }
@@ -587,7 +598,7 @@ public class OrderServiceImpl implements IOrderService {
             return false;
         }
         Long orderNo = Long.valueOf(params.get("out_trade_no"));
-        Order order = resetTotalPrice(orderNo);
+        Order order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             return false;
         }
@@ -652,18 +663,18 @@ public class OrderServiceImpl implements IOrderService {
     // 简单打印应答
     private void dumpResponse(AlipayResponse response) {
         if (response != null) {
-            logger.info(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
+            log.info(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
             if (StringUtils.isNotEmpty(response.getSubCode())) {
-                logger.info(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
+                log.info(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
                         response.getSubMsg()));
             }
-            logger.info("body:" + response.getBody());
+            log.info("body:" + response.getBody());
         }
     }
 
     /**
-     * 根据单品的实际价格重置订单中的总价, 包括orderItem的总价和order的总价
-     *
+     * 根据订单详细条目的单品的实际价格重置订单中的总价, 包括orderItem的总价和order的总价
+     * 这一部不是必须的, 一般在创建订单的时候已经计算好了, 如果为了防止总价不对, 可以使用该函数
      * @param orderNo
      */
     private Order resetTotalPrice(Long orderNo) {

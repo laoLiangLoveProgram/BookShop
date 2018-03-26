@@ -8,8 +8,10 @@
 	http://www.springframework.org/schema/mvc
 	http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <!--包扫描，可以扫描controller注解，通过把注解加在类上就可以被扫描到了-->
-    <context:component-scan base-package="com.bookshop" annotation-config="true"/>
+    <!--包扫描，可以扫描controller注解，通过把注解加在类上就可以被扫描到了, 关闭默认的扫描方式, 只扫描Controller注解-->
+    <context:component-scan base-package="com.bookshop.controller" annotation-config="true" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
 
 
     <!--编码的配置-->
@@ -35,16 +37,34 @@
     </mvc:annotation-driven>
 
 
-
     <!-- 文件上传 -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         <!--文件上传的最大size-->
         <property name="maxUploadSize" value="10485760"/> <!-- 10m -->
         <!--文件上传使用的内存块-->
-        <property name="maxInMemorySize" value="4096" />
+        <property name="maxInMemorySize" value="4096"/>
         <!--编码-->
         <property name="defaultEncoding" value="UTF-8"/>
     </bean>
+
+    <mvc:interceptors>
+        <!--如果在interceptors中直接配置bean, 则代表拦截器会拦截所有的请求-->
+        <!--<bean ></bean>-->
+        <!--登录拦截器-->
+        <mvc:interceptor>
+            <!-- /** 代表所有的路径, 包含子路径-->
+            <mvc:mapping path="/**" />
+            <!--排除登录请求的拦截-->
+            <!--<mvc:exclude-mapping path="/manage/user/login.do" />-->
+            <bean class="com.bookshop.common.interceptor.LoginInterceptor" />
+        </mvc:interceptor>
+
+        <!--权限拦截器-->
+        <mvc:interceptor>
+            <mvc:mapping path="/manage/**"/>
+            <bean class="com.bookshop.common.interceptor.AuthorityInterceptor" />
+        </mvc:interceptor>
+    </mvc:interceptors>
 
 
 </beans>

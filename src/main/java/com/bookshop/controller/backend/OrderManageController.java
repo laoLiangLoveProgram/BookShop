@@ -5,6 +5,7 @@ package com.bookshop.controller.backend;/**
 import com.bookshop.common.Const;
 import com.bookshop.common.ResponseCode;
 import com.bookshop.common.ServerResponse;
+import com.bookshop.controller.common.UserSessionUtil;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IOrderService;
 import com.bookshop.service.IUserService;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @program: book_shop
@@ -37,26 +38,14 @@ public class OrderManageController {
 
     /**
      * 后台管理的订单list
-     *
-     * @param session
-     * @param pageNum
-     * @param pageSize
-     * @return
      */
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse<PageInfo> orderList(HttpSession session, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
-        }
+    public ServerResponse<PageInfo> orderList(HttpServletRequest request, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageOrderList(pageNum, pageSize);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageOrderList(pageNum, pageSize);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
     /**
@@ -64,18 +53,11 @@ public class OrderManageController {
      */
     @RequestMapping("detail.do")
     @ResponseBody
-    public ServerResponse<OrderVo> orderDetail(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
-        }
+    public ServerResponse<OrderVo> orderDetail(HttpServletRequest request, Long orderNo) {
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageDetail(orderNo);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageDetail(orderNo);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
     /**
@@ -83,18 +65,11 @@ public class OrderManageController {
      */
     @RequestMapping("search.do")
     @ResponseBody
-    public ServerResponse<PageInfo> orderSearch(HttpSession session, Long orderNo, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
-        }
+    public ServerResponse<PageInfo> orderSearch(HttpServletRequest request, Long orderNo, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageSearch(orderNo, pageNum, pageSize);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageSearch(orderNo, pageNum, pageSize);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
     /**
@@ -102,18 +77,11 @@ public class OrderManageController {
      */
     @RequestMapping("send_goods.do")
     @ResponseBody
-    public ServerResponse<String> orderSendGoods(HttpSession session, Long orderNo) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录，请登录管理员");
-        }
+    public ServerResponse<String> orderSendGoods(HttpServletRequest request, Long orderNo) {
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageSendGoods(orderNo);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageSendGoods(orderNo);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
 
