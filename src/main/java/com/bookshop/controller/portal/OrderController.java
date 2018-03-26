@@ -46,12 +46,8 @@ public class OrderController {
     @RequestMapping("create.do")
     @ResponseBody
     public ServerResponse create(HttpServletRequest request, Integer shippingId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iOrderService.createOrder(user.getId(), shippingId);
     }
@@ -64,12 +60,8 @@ public class OrderController {
     @RequestMapping("cancel.do")
     @ResponseBody
     public ServerResponse cancel(HttpServletRequest request, Long orderNo) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
 
         return iOrderService.cancel(user.getId(), orderNo);
@@ -82,12 +74,8 @@ public class OrderController {
     @RequestMapping("get_order_cart_book.do")
     @ResponseBody
     public ServerResponse getOrderCartBook(HttpServletRequest request) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iOrderService.getOrderCartBook(user.getId());
     }
@@ -99,12 +87,8 @@ public class OrderController {
     @RequestMapping("detail.do")
     @ResponseBody
     public ServerResponse detail(HttpServletRequest request, Long orderNo) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
 
         return iOrderService.getOrderDetail(user.getId(), orderNo);
@@ -117,12 +101,8 @@ public class OrderController {
     @RequestMapping("list.do")
     @ResponseBody
     public ServerResponse list(HttpServletRequest request, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
 
         return iOrderService.getOrderVoList(user.getId(), pageNum, pageSize);
@@ -137,12 +117,8 @@ public class OrderController {
     @RequestMapping("pay.do")
     @ResponseBody
     public ServerResponse pay(Long orderNo, HttpServletRequest request) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         String path = request.getSession().getServletContext().getRealPath("upload");
 
@@ -210,14 +186,10 @@ public class OrderController {
     @RequestMapping("query_order_pay_status.do")
     @ResponseBody
     public ServerResponse<Boolean> queryOrderPayStatus(HttpServletRequest request, Long orderNo) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
-        serverResponse = iOrderService.queryOrderPayStatus(user.getId(), orderNo);
+        ServerResponse serverResponse = iOrderService.queryOrderPayStatus(user.getId(), orderNo);
         if (serverResponse.isSuccess()) {
             return ServerResponse.createBySuccess(true);
         }

@@ -6,11 +6,13 @@ import com.bookshop.dao.UserMapper;
 import com.bookshop.pojo.User;
 import com.bookshop.service.IUserService;
 import com.bookshop.util.MD5Util;
-import com.bookshop.util.RedisPoolUtil;
+import com.bookshop.util.RedisShardedPoolUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -40,8 +42,7 @@ public class UserServiceImpl implements IUserService {
 
         //密码置空，防止安全问题
         user.setPassword(StringUtils.EMPTY);
-        //密码修改问题和答案置空
-        user.setQuestion(StringUtils.EMPTY);
+        //密码修改问题的答案置空
         user.setAnswer(StringUtils.EMPTY);
         return ServerResponse.createBySuccess("登录成功", user);
     }
@@ -135,7 +136,7 @@ public class UserServiceImpl implements IUserService {
             //说明问题及答案是该用户的，且是正确的
             String forgetToken = UUID.randomUUID().toString();
             //使用Redis缓存来代替Guava Cache
-            RedisPoolUtil.setEx(Const.TOKEN_PREFIX+username, forgetToken, 60*60*12);
+            RedisShardedPoolUtil.setEx(Const.TOKEN_PREFIX+username, forgetToken, 60*60*12);
 
             return ServerResponse.createBySuccess(forgetToken);
         }
@@ -153,7 +154,7 @@ public class UserServiceImpl implements IUserService {
         }
 
         //使用了Redis缓存来代替Guava Cache
-        String token = RedisPoolUtil.get(Const.TOKEN_PREFIX+username);
+        String token = RedisShardedPoolUtil.get(Const.TOKEN_PREFIX+username);
 
         if(StringUtils.isBlank(token)){
             return ServerResponse.createByErrorMessage("token无效或者过期");
@@ -181,8 +182,13 @@ public class UserServiceImpl implements IUserService {
             return ServerResponse.createByErrorMessage("旧密码错误");
         }
 
-        user.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
-        int updateCount = userMapper.updateByPrimaryKeySelective(user);
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        //只更新密码, 其他不更新
+        updateUser.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
+        updateUser.setUpdateTime(new Date());
+
+        int updateCount = userMapper.updateByPrimaryKeySelective(updateUser);
         if(updateCount > 0){
             return ServerResponse.createBySuccessMessage("密码更新成功");
         }
@@ -199,15 +205,16 @@ public class UserServiceImpl implements IUserService {
 
         //只设置需要更新的字段，id为依据
         User updateUser = new User();
-        updateUser.setId(user.getId());
-        updateUser.setEmail(user.getEmail());
-        updateUser.setPhone(user.getPhone());
-        updateUser.setQuestion(user.getQuestion());
-        updateUser.setAnswer(user.getAnswer());
+        //username是不能被更新的, 密码需要通过专门的修改密码的接口来修改, 用户级别也不能被更改, 密码提示问题不能被修改
+        BeanUtils.copyProperties(user, updateUser, new String[]{"username", "password", "question", "role"});
+        updateUser.setUpdateTime(new Date());
 
         //只有不等于null的时候才去更新
         int updataCount = userMapper.updateByPrimaryKeySelective(updateUser);
         if(updataCount > 0){
+            updateUser = userMapper.selectByPrimaryKey(updateUser.getId());
+            updateUser.setPassword(StringUtils.EMPTY);
+            updateUser.setAnswer(StringUtils.EMPTY);
             return ServerResponse.createBySuccess("更新个人信息成功", updateUser);
         }
 

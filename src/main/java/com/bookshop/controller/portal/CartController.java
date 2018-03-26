@@ -8,7 +8,7 @@ import com.bookshop.pojo.User;
 import com.bookshop.service.ICartService;
 import com.bookshop.util.CookieUtil;
 import com.bookshop.util.JsonUtil;
-import com.bookshop.util.RedisPoolUtil;
+import com.bookshop.util.RedisShardedPoolUtil;
 import com.bookshop.vo.CartVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,12 +30,8 @@ public class CartController {
     @RequestMapping("list.do")
     @ResponseBody
     public ServerResponse<CartVo> list(HttpServletRequest request) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iCartService.list(user.getId());
     }
@@ -44,13 +40,8 @@ public class CartController {
     @RequestMapping("add.do")
     @ResponseBody
     public ServerResponse<CartVo> add(HttpServletRequest request, Integer count, Integer bookId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
-
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iCartService.add(user.getId(), bookId, count);
     }
@@ -59,12 +50,8 @@ public class CartController {
     @RequestMapping("update.do")
     @ResponseBody
     public ServerResponse<CartVo> update(HttpServletRequest request, Integer count, Integer bookId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iCartService.update(user.getId(), bookId, count);
     }
@@ -72,12 +59,8 @@ public class CartController {
     @RequestMapping("delete_book.do")
     @ResponseBody
     public ServerResponse<CartVo> deleteBook(HttpServletRequest request, String bookIds) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iCartService.deleteBook(user.getId(), bookIds);
     }
@@ -86,12 +69,8 @@ public class CartController {
     @RequestMapping("select_all.do")
     @ResponseBody
     public ServerResponse<CartVo> selectAll(HttpServletRequest request) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
 
         return iCartService.selectOrUnSelect(user.getId(), null, Const.Cart.CHECKED);
@@ -101,12 +80,8 @@ public class CartController {
     @RequestMapping("un_select_all.do")
     @ResponseBody
     public ServerResponse<CartVo> unSelectAll(HttpServletRequest request) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
 
         return iCartService.selectOrUnSelect(user.getId(), null, Const.Cart.UN_CHECKED);
@@ -116,12 +91,8 @@ public class CartController {
     @RequestMapping("select.do")
     @ResponseBody
     public ServerResponse<CartVo> select(HttpServletRequest request, Integer bookId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iCartService.selectOrUnSelect(user.getId(), bookId, Const.Cart.CHECKED);
     }
@@ -130,12 +101,8 @@ public class CartController {
     @RequestMapping("un_select.do")
     @ResponseBody
     public ServerResponse<CartVo> unSelect(HttpServletRequest request, Integer bookId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iCartService.selectOrUnSelect(user.getId(), bookId, Const.Cart.UN_CHECKED);
     }
@@ -150,7 +117,7 @@ public class CartController {
             //未登录的用户的购物车中产品数量为0
             return ServerResponse.createBySuccess(0);
         }
-        String userJsonStr = RedisPoolUtil.get(sessionId);
+        String userJsonStr = RedisShardedPoolUtil.get(sessionId);
         User user = JsonUtil.string2Obj(userJsonStr, User.class);
 
         if (user == null) {

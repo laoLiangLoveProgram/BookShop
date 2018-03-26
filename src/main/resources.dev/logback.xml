@@ -15,11 +15,11 @@
 
     <!--项目的日志，自动通过日期Rolling-->
     <appender name="bookshop" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>d:/bookshop/bookshop.log</File>
+        <File>/data/log/bookshop/bookshop.log</File>
         <!--<File>/developer/apache-tomcat-7.0.73/logs/bookshop.log</File>-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--<fileNamePattern>/developer/apache-tomcat-7.0.73/logs/mmall.log.%d{yyyy-MM-dd}.gz</fileNamePattern>-->
-            <fileNamePattern>d:/bookshop/bookshop.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>/data/log/bookshop/bookshop.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
             <append>true</append>
             <!--最大存储历史时期-->
             <maxHistory>10</maxHistory>
@@ -31,11 +31,11 @@
 
 
     <appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>d:/bookshop/error.log</File>
+        <File>/data/errorLog/bookshop/error.log</File>
         <!--<File>/developer/apache-tomcat-7.0.73/logs/error.log</File>-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--<fileNamePattern>/devsoft/apache-tomcat-7.0.73/logs/error.log.%d{yyyy-MM-dd}.gz</fileNamePattern>-->
-            <fileNamePattern>d:/bookshop/error.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>/data/errorLog/bookshop/error.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
             <append>true</append>
             <maxHistory>10</maxHistory>
         </rollingPolicy>

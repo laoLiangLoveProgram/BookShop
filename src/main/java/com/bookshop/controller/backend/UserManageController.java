@@ -6,7 +6,7 @@ import com.bookshop.pojo.User;
 import com.bookshop.service.IUserService;
 import com.bookshop.util.CookieUtil;
 import com.bookshop.util.JsonUtil;
-import com.bookshop.util.RedisPoolUtil;
+import com.bookshop.util.RedisShardedPoolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.UUID;
 
 /**
  * Created by Administrator on 2017/5/15.
@@ -36,10 +37,12 @@ public class UserManageController {
             if (Const.Role.ROLE_ADMIN.equals(user.getRole())) {
                 //说明登录的是管理员
 
-                CookieUtil.writeLoginToken(httpServletResponse, session.getId());
+                String sessionId = UUID.randomUUID().toString();
+
+                CookieUtil.writeLoginToken(httpServletResponse, sessionId);
 
                 //setEx(key, value, exTime), 设置带有剩余时间的session
-                RedisPoolUtil.setEx(session.getId(), JsonUtil.obj2String(response.getData()), Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
+                RedisShardedPoolUtil.setEx(sessionId, JsonUtil.obj2String(response.getData()), Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
 
                 return response;
             } else {

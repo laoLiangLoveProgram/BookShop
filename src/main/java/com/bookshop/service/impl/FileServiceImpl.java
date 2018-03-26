@@ -22,6 +22,10 @@ public class FileServiceImpl implements IFileService {
 //    private Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
 
     public String upload(MultipartFile file, String path) {
+        if (file.isEmpty()){
+            log.info("上传了空文件");
+            return null;
+        }
         String fileName = file.getOriginalFilename();
         //扩展名
         //abc.jpg-->

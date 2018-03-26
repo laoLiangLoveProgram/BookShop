@@ -7,7 +7,7 @@ import com.bookshop.common.ServerResponse;
 import com.bookshop.pojo.User;
 import com.bookshop.util.CookieUtil;
 import com.bookshop.util.JsonUtil;
-import com.bookshop.util.RedisPoolUtil;
+import com.bookshop.util.RedisShardedPoolUtil;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,7 +24,7 @@ public class UserSessionUtil {
         if (sessionId == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), errorMsg);
         }
-        String userJsonStr = RedisPoolUtil.get(sessionId);
+        String userJsonStr = RedisShardedPoolUtil.get(sessionId);
         User user = JsonUtil.string2Obj(userJsonStr, User.class);
 
         if (user == null) {

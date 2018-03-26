@@ -6,7 +6,7 @@ import com.bookshop.common.Const;
 import com.bookshop.pojo.User;
 import com.bookshop.util.CookieUtil;
 import com.bookshop.util.JsonUtil;
-import com.bookshop.util.RedisPoolUtil;
+import com.bookshop.util.RedisShardedPoolUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.*;
@@ -33,12 +33,12 @@ public class SessionExpireFilter implements Filter {
 
         //如果sessionId不为空或"", 则拿取user的Json字符串信息
         if (StringUtils.isNotEmpty(sessionId)) {
-            String userJsonStr = RedisPoolUtil.get(sessionId);
+            String userJsonStr = RedisShardedPoolUtil.get(sessionId);
             User user = JsonUtil.string2Obj(userJsonStr, User.class);
 
             //如果user不为空, 则重置session的有效时间
             if (user != null) {
-                RedisPoolUtil.expire(sessionId, Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
+                RedisShardedPoolUtil.expire(sessionId, Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
             }
         }
         //继续执行过滤器链

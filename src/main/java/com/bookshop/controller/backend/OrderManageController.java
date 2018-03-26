@@ -38,90 +38,50 @@ public class OrderManageController {
 
     /**
      * 后台管理的订单list
-     *
      */
     @RequestMapping("list.do")
     @ResponseBody
     public ServerResponse<PageInfo> orderList(HttpServletRequest request, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageOrderList(pageNum, pageSize);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageOrderList(pageNum, pageSize);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
     /**
      * 订单详情
-     *
      */
     @RequestMapping("detail.do")
     @ResponseBody
     public ServerResponse<OrderVo> orderDetail(HttpServletRequest request, Long orderNo) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageDetail(orderNo);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageDetail(orderNo);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
     /**
      * 按订单号搜索
-     *
      */
     @RequestMapping("search.do")
     @ResponseBody
     public ServerResponse<PageInfo> orderSearch(HttpServletRequest request, Long orderNo, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageSearch(orderNo, pageNum, pageSize);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageSearch(orderNo, pageNum, pageSize);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
     /**
      * 发货
-     * 
      */
     @RequestMapping("send_goods.do")
     @ResponseBody
     public ServerResponse<String> orderSendGoods(HttpServletRequest request, Long orderNo) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, "用户未登录，请登录管理员");
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //已经通过拦截器检验了是否登录和是否为管理员
+        //业务逻辑
+        return iOrderService.manageSendGoods(orderNo);
 
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //业务逻辑
-            return iOrderService.manageSendGoods(orderNo);
-        } else {
-            return ServerResponse.createByErrorMessage("无权限操作");
-        }
     }
 
 

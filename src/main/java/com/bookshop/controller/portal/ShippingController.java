@@ -29,12 +29,8 @@ public class ShippingController {
     @RequestMapping("add.do")
     @ResponseBody
     public ServerResponse add(HttpServletRequest request, Shipping shipping) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iShippingService.add(user.getId(), shipping);
     }
@@ -43,12 +39,8 @@ public class ShippingController {
     @RequestMapping("delete.do")
     @ResponseBody
     public ServerResponse<String> delete(HttpServletRequest request, Integer shippingId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iShippingService.delete(user.getId(), shippingId);
     }
@@ -57,12 +49,8 @@ public class ShippingController {
     @RequestMapping("update.do")
     @ResponseBody
     public ServerResponse update(HttpServletRequest request, Shipping shipping) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iShippingService.update(user.getId(), shipping);
     }
@@ -71,12 +59,8 @@ public class ShippingController {
     @RequestMapping("select.do")
     @ResponseBody
     public ServerResponse<Shipping> select(HttpServletRequest request, Integer shippingId) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iShippingService.select(user.getId(), shippingId);
     }
@@ -86,12 +70,8 @@ public class ShippingController {
     public ServerResponse<PageInfo> list(HttpServletRequest request,
                                          @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
                                          @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
-        //判断是否登录
-        ServerResponse serverResponse = UserSessionUtil.getUserFromSession(request, ResponseCode.NEED_LOGIN.getDesc());
-        if (!serverResponse.isSuccess()){
-            return serverResponse;
-        }
-        User user = (User) serverResponse.getData();
+        //是否登录已经在拦截器中进行了校验
+        User user = (User) request.getAttribute(Const.CURRENT_USER);
 
         return iShippingService.list(user.getId(), pageNum, pageSize);
     }
